@@ -1,4 +1,4 @@
-# A TCP to COM bridge solution
+# Two programs to create a bridge between a Windows desktop's USB serial COM port and a Linux server
 
 ## Warning!
 
