@@ -118,15 +118,17 @@ for details.
 
 ### The --com command line argument
 
-The `--com` command line argument can be used to specify which COM port on the Windows
-machine open.
+The `--com` command line argument can be used to specify which COM port
+on the Windows machine open.
 
-If there is only one COM port available the `--com` command line argument is not necessary
-as the program will determine the name of the single COM port.
+If there is only one COM port available the `--com` command line argument
+is not necessary as the program will determine the name of the single
+COM port.
 
-If the `--com` command line argument is not specified are there are two or more COM ports
-available on the Windows machine then the one with the highest number will be used. For example if the following
-COM ports are available:
+If the `--com` command line argument is not specified and there are two
+or more COM ports available on the Windows machine then the one with
+the highest number will be used. For example if the following COM ports
+are available:
 
 ```
 COM1   COM2   COM14
@@ -136,9 +138,9 @@ then COM14 will be used.
 
 ### The --baud command line argument
 
-The baud rate to open the COM port at defaults to 9600 baud. To specify a different baud rate use
-the `--baud` command lne argument. For example to use baud rate 115200 run the `tcb-server-w.py`
-program as follows:
+The baud rate to open the COM port at defaults to 9600 baud. To specify
+a different baud rate use the `--baud` command lne argument. For example
+to use baud rate 115200 run the `tcb-server-w.py` program as follows:
 
 ```
 python tcb-server-w.py --baud 115200
@@ -149,7 +151,7 @@ The `--bind` command line agument is used to specify the IPv4 address that
 the `tcb-server-w.py` program should listen on for incomining connections.
 
 If the `--bind` command line agument is omitted the `tcb-server-w.py`
-program will see if there are any intefaces which have an IPv4 address
+program will see if there are any interfaces which have an IPv4 address
 where the first two octets are 10 and 7 such as:
 
 ```
@@ -164,7 +166,7 @@ author, some typing :-]
 The `--port` command line argument is used to specifiy the TCP/IP port
 number the `tcb-server-w.py` should listen on.
 
-It defaults to port 8089 but if a different port number is needed is
+It defaults to port 8089 but if a different port number is needed it
 can be specified. For example:
 
 ```
@@ -173,21 +175,26 @@ python tcb-server-w.py --port 9123
 
 ### The --timeout command line argument
 
-The `--timeout` command line argument should never really be required but is included for experimentation and testing.
+The `--timeout` command line argument should never really be required
+but is included for experimentation and testing.
 
-The value is a floating point number which defaults to 0.01 seconds. This is the time to wait for input to arrive on both
-the COM port and the TCP/IP port. Smaller values will make the program more responsive at the expense of extra CPU cycles. Larger numbers
-will make the program "laggy" to the point of unusability.
+The value is a floating point number which defaults to 0.01 seconds. This
+is the time to wait for input to arrive on both the COM port and the
+TCP/IP port. Smaller values will make the program more responsive at
+the expense of extra CPU cycles. Larger numbers will make the program
+"laggy" to the point of unusability.
 
-Depending on your hardware sepcpfications you might want to try different values but 0.01 seconds (i.e. one hundredth of a second)
-has, so far, been satisfactory.
+Depending on your hardware specifications you might want to try different
+values but 0.01 seconds (i.e. one hundredth of a second) has, so far,
+been satisfactory.
 
 
 ## Command line arguments for the tcb-client-l C program
 
 ### First positional command line argument
 
-The first positional command line argument is the IPv4 address to connect to.
+The first positional command line argument is the IPv4 address to
+connect to.
 
 It is a required command line argument. For example:
 
@@ -198,11 +205,11 @@ tcb-client-l 10.7.0.10
 
 ### Second positional command line argument
 
-The second positional command line argument is the TCP/IP port number to connect
-to.
+The second positional command line argument is the TCP/IP port number
+to connect to.
 
-It is an optional command line argument. By default the TCP/IP port number is 8089 but
-a different port number can be specified. For example:
+It is an optional command line argument. By default the TCP/IP port
+number is 8089 but a different port number can be specified. For example:
 
 
 ```
@@ -212,10 +219,11 @@ tcb-client-l 10.7.0.10 8008
 
 ### The `-e` command line argument
 
-By default the `tcb-client-l` program exits when the user types a single ^ character.
+By default the `tcb-client-l` program exits when the user types a single
+^ character.
 
-To change this to another character use the `-e` command line argument. For example
-to use the character = as the escape character:
+To change this to another character use the `-e` command line
+argument. For example to use the character = as the escape character:
 
 ```
 tcb-client-l -e = 10.7.0.10
