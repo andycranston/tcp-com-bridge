@@ -1,4 +1,4 @@
-static char *version = "@(!--#) @(#) tcb-client-l.c, sversion 0.1.0, fversion 005, 14-september-2025";
+static char *version = "@(!--#) @(#) tcb-client-l.c, sversion 0.1.0, fversion 007, 17-september-2025";
 
 /*
  *  tcb-client-l.c
@@ -49,9 +49,11 @@ static char *version = "@(!--#) @(#) tcb-client-l.c, sversion 0.1.0, fversion 00
 #define FALSE 0
 #endif
 
-#define DEFAULT_POLL_TIMEOUT 10
-
 #define DEFAULT_TCP_PORT 8089
+
+#define DEFAULT_ESCAPE_CHAR '^'
+
+#define POLL_TIMEOUT 10
 
 #define DEVTTY "/dev/tty"
 
@@ -72,7 +74,7 @@ struct termios		termoptions;
 
 void usage()
 {
-	fprintf(stderr, "%s: usage %s IPv4 address [ port ]\n", progname, progname);
+	fprintf(stderr, "%s: usage %s [ -e escape_character ] IPv4_address [ TCP/IP_port# ]\n", progname, progname);
 
 	exit(2);
 }
@@ -97,6 +99,22 @@ char *basename(s)
 	}
 
 	return bn;
+}
+
+/**********************************************************************/
+
+int alldigits(s)
+	char	*s;
+{
+	while (*s != '\0') {
+		if (! isdigit(*s)) {
+			return FALSE;
+		}
+
+		s++;
+	}
+
+	return TRUE;
 }
 
 /**********************************************************************/
@@ -135,6 +153,8 @@ int main(argc, argv)
 	char    *argv[];
 {
 	char			*ipv4;
+	char			escapechar;
+	int			arg;
 	int			port;
 	int			devtty;
 	unsigned char		buf[8192];
@@ -150,30 +170,59 @@ int main(argc, argv)
 
 	progname = basename(argv[0]);
 
-	if ((argc < 2) || (argc > 3)) {
+	if (argc == 1) {
 		usage();
 	}
 
-	ipv4 = argv[1];
+	port = -1;
+	escapechar = DEFAULT_ESCAPE_CHAR;
+	ipv4 = (char *)NULL;
 
-	if (argc == 3) {
-		port = atoi(argv[2]);
-	} else {
+	arg = 1;
+
+	while (arg < argc) {
+		if (strcmp(argv[arg], "-e") == 0) {
+			arg++;
+
+			if (arg >= argc) {
+				fprintf(stderr, "%s: expecting escape character after the -e command line option\n", progname);
+				exit(1);
+			}
+
+			escapechar = argv[arg][0];
+		} else {
+			if (ipv4 == NULL) {
+				ipv4 = argv[arg];
+			} else if (port == -1) {
+				if (! alldigits(argv[arg])) {
+					fprintf(stderr, "%s: port number \"%s\" has one or more non-digit characters in it\n", progname, argv[arg]);
+					exit(1);
+				}
+
+				port = atoi(argv[arg]);
+
+				if (port < 0) {
+					fprintf(stderr, "%s: port number %d is negative which is invalid\n", progname, port);
+					exit(1);
+				}
+
+				if (port > 65535) {
+					fprintf(stderr, "%s: port number %d is larger than 65535 which is invalid\n", progname, port);
+					exit(1);
+				}
+			} else {
+				fprintf(stderr, "%s: unrecognised command line argument \"%s\"\n", progname, argv[arg]);
+				exit(1);
+			}
+		}
+
+		arg++;
+	}
+
+	if (port == -1) {
 		port = DEFAULT_TCP_PORT;
 	}
-
-	if ((devtty = open(DEVTTY, O_RDWR)) == -1) {
-		fprintf(stderr, "%s: unable to open %s\n", progname, DEVTTY);
-	}
-
-	tcgetattr(devtty, &originaltermoptions);
-
-	tcgetattr(devtty, &termoptions);
-
-	cfmakeraw(&termoptions);
-
-	tcsetattr(devtty, TCSANOW, &termoptions);
-
+					
 	if ((clientsocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		fprintf(stderr, "%s: unable to create a TCP (stream) based socket\n", progname);
 		exit(2);
@@ -192,6 +241,14 @@ int main(argc, argv)
 		exit(2);
 	}
 
+	if ((devtty = open(DEVTTY, O_RDWR)) == -1) {
+		fprintf(stderr, "%s: unable to open %s\n", progname, DEVTTY);
+	}
+
+	tcgetattr(devtty, &originaltermoptions);
+	tcgetattr(devtty, &termoptions);
+	cfmakeraw(&termoptions);
+	tcsetattr(devtty, TCSANOW, &termoptions);
 
 	writedev(devtty, "<<Connected>>\r\n");
 
@@ -205,7 +262,7 @@ int main(argc, argv)
 		printf("----------------\n");
 		*/
 
-		pollretcode = poll(ttyfd, (nfds_t)1, DEFAULT_POLL_TIMEOUT);
+		pollretcode = poll(ttyfd, (nfds_t)1, POLL_TIMEOUT);
 
 		if (pollretcode < 0) {
 			fprintf(stderr, "%s: call to tty poll gave a negative return code of %d\n", progname, pollretcode);
@@ -230,13 +287,13 @@ int main(argc, argv)
 				printf("%d\t%c\n", i, buf[i]);
 				*/
 
-				if (buf[i] == '^') {
+				if (buf[i] == escapechar) {
 					exitflag = TRUE;
 					break;
 				}
 			}
 
-			/* if exit time break out now */
+			/* if exitflag is true then it is time break out now */
 			if (exitflag) {
 				break;
 			}
@@ -248,7 +305,7 @@ int main(argc, argv)
 		sockfd[0].fd      = clientsocket;
 		sockfd[0].events  = POLLIN;
 
-		pollretcode = poll(sockfd, (nfds_t)1, DEFAULT_POLL_TIMEOUT);
+		pollretcode = poll(sockfd, (nfds_t)1, POLL_TIMEOUT);
 
 		if (pollretcode < 0) {
 			fprintf(stderr, "%s: call to socket poll gave a negative return code of %d\n", progname, pollretcode);
