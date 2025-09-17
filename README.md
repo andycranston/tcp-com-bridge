@@ -145,23 +145,27 @@ python tcb-server-w.py --baud 115200
 ```
 ### The --bind command line argument
 
-The `--bind` command line agument is used to specify the IPv4 address that the `tcb-server-w.py`
-program should listen on for incomining connections.
+The `--bind` command line agument is used to specify the IPv4 address that
+the `tcb-server-w.py` program should listen on for incomining connections.
 
-If `--bind` command line agument is omitted the `tcb-server-w.py` will see if there are any intefaces which have an IPv4 address where
-the first two octets are 10 and 7 such as:
+If the `--bind` command line agument is omitted the `tcb-server-w.py`
+program will see if there are any intefaces which have an IPv4 address
+where the first two octets are 10 and 7 such as:
 
 ```
 10.7.0.10
 ```
 
-This is a hack to match my own test networks and save me, the program author, some typing :-]
+This is a hack to match my own test networks and save me, the program
+author, some typing :-]
 
 ### The --port command line argument
 
-The `--port` command line argument is used to specifiy the TCP/IP port number the `tcb-server-w.py` should listen on.
+The `--port` command line argument is used to specifiy the TCP/IP port
+number the `tcb-server-w.py` should listen on.
 
-It defaults to port 8089 but if a different port number is needed is can be specified. For example:
+It defaults to port 8089 but if a different port number is needed is
+can be specified. For example:
 
 ```
 python tcb-server-w.py --port 9123
@@ -181,23 +185,64 @@ has, so far, been satisfactory.
 
 ## Command line arguments for the tcb-client-l C program
 
-Work in progress ...
+### First positional command line argument
+
+The first positional command line argument is the IPv4 address to connect to.
+
+It is a required command line argument. For example:
+
+```
+tcb-client-l 10.7.0.10
+```
+
+
+### Second positional command line argument
+
+The second positional command line argument is the TCP/IP port number to connect
+to.
+
+It is an optional command line argument. By default the TCP/IP port number is 8089 but
+a different port number can be specified. For example:
+
+
+```
+tcb-client-l 10.7.0.10 8008
+```
+
+
+### The `-e` command line argument
+
+By default the `tcb-client-l` program exits when the user types a single ^ character.
+
+To change this to another character use the `-e` command line argument. For example
+to use the character = as the escape character:
+
+```
+tcb-client-l -e = 10.7.0.10
+```
+
+
+
 
 ## Bugs
 
-Bound to be some bugs - especially when handling disconnections and timeouts. Let me know :-]
+Bound to be some bugs - especially when handling disconnections and
+timeouts. Let me know :-]
 
 ## Security
 
-All the traffic that goes over the bridge in both directions is send
+All the traffic that goes over the bridge in both directions is sent
 unencrypted. So if you are logging into the serial port of a network
 switch, for example, any usernames and passwords you type will be
 transmitted across the bridge as clear text.
 
-When the bridge is between the USB to serial adapter on the laptop and a
-virtual machine running on Virtual Box which is running on the same laptop
-this traffic should not "escape" onto any connected networks (e.g. WiFi
-and/or ethernet links). However, I won't gaurantee that so be aware.
+When the bridge is between the USB to serial adapter on the Windows
+machine and a virtual machine running on Virtual Box which is running on
+the same Windows machine then this traffic should not "escape" onto any
+connected networks (e.g. WiFi and/or ethernet links).
+
+However, it would be wrong of me to guarantee that bridge traffic will
+never escape so beware!
 
 If you don't like the sound of this then DO NOT USE THE SOFTWARE.
 
