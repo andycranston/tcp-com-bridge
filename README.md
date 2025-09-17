@@ -3,30 +3,33 @@
 ## Warning!
 
 Please read the security section. In summary everything sent across the
-"bridge" in both directions is sent un-encrypted.
+"bridge" in both directions is sent unencrypted.
 
 USE AT YOUR OWN RISK!!!
 
 ## Abstract
 
-The programs here were written to overcome an issue I was having trying to
-get an Ubuntu 24.04 LTS virtual machine which runs under Virtual Box
-on my Windows 10 (soon to be Windows 11) laptop.
+The programs here were written to overcome an issue I was having trying
+to get an Ubuntu 24.04 LTS virtual machine which runs under Virtual
+Box on my Windows 10 (soon to be Windows 11) laptop to talk to a USB to
+serial adapter.
 
-When I connected a USB to serial
-adapter to one of the laptops USB ports I could map the USB device ok and see
-it on the Ubuntu machine as /dev/ttyUSB0 but trying to use it would initially
-work but then hang and/or become otherwise unreliable.
+When I connected a USB to serial adapter to one of the laptops USB
+ports I could map the USB device ok and see it on the Ubuntu machine
+as /dev/ttyUSB0 but trying to use it would initially work but then hang
+and/or become otherwise unreliable.
 
 Sometimes the Ubuntu virtual machine would not restart properly.
 
-Some googling shows other people have had issues with USB to serial adaptors
-and Virtual Box.
+Some googling shows other people have had issues with USB to serial
+adaptors and Virtual Box.
 
-Rather than try the many workarounds suggested I have taken a different approach.
+Rather than try the many workarounds suggested I have taken a different
+approach.
 
-I have written two programs that work as a bridge between the USB to serial adapter in Windows
-and the Ubuntu virtual machine hosted by Virtual Box.
+I have written two programs that work as a bridge between the USB to
+serial adapter in Windows and the Ubuntu virtual machine hosted by
+Virtual Box.
 
 Here is a diagram:
 
@@ -58,7 +61,7 @@ Here is a diagram:
 
 Copy the `tcb-server-w.py` Python 3 program to the Windows laptop.
 
-Open a command prompt and change to the directory that  `tcb-server-w.py` was copied to.
+Open a command prompt and change to the directory that `tcb-server-w.py` was copied to.
 
 Run the program with:
 
@@ -113,7 +116,68 @@ for details.
 
 ## Command line arguments for the tcb-server-w.py Python program
 
-Work in progress ...
+### The --com command line argument
+
+The `--com` command line argument can be used to specify which COM port on the Windows
+machine open.
+
+If there is only one COM port available the `--com` command line argument is not necessary
+as the program will determine the name of the single COM port.
+
+If the `--com` command line argument is not specified are there are two or more COM ports
+available on the Windows machine then the one with the highest number will be used. For example if the following
+COM ports are available:
+
+```
+COM1   COM2   COM14
+```
+
+then COM14 will be used.
+
+### The --baud command line argument
+
+The baud rate to open the COM port at defaults to 9600 baud. To specify a different baud rate use
+the `--baud` command lne argument. For example to use baud rate 115200 run the `tcb-server-w.py`
+program as follows:
+
+```
+python tcb-server-w.py --baud 115200
+```
+### The --bind command line argument
+
+The `--bind` command line agument is used to specify the IPv4 address that the `tcb-server-w.py`
+program should listen on for incomining connections.
+
+If `--bind` command line agument is omitted the `tcb-server-w.py` will see if there are any intefaces which have an IPv4 address where
+the first two octets are 10 and 7 such as:
+
+```
+10.7.0.10
+```
+
+This is a hack to match my own test networks and save me, the program author, some typing :-]
+
+### The --port command line argument
+
+The `--port` command line argument is used to specifiy the TCP/IP port number the `tcb-server-w.py` should listen on.
+
+It defaults to port 8089 but if a different port number is needed is can be specified. For example:
+
+```
+python tcb-server-w.py --port 9123
+```
+
+### The --timeout command line argument
+
+The `--timeout` command line argument should never really be required but is included for experimentation and testing.
+
+The value is a floating point number which defaults to 0.01 seconds. This is the time to wait for input to arrive on both
+the COM port and the TCP/IP port. Smaller values will make the program more responsive at the expense of extra CPU cycles. Larger numbers
+will make the program "laggy" to the point of unusability.
+
+Depending on your hardware sepcpfications you might want to try different values but 0.01 seconds (i.e. one hundredth of a second)
+has, so far, been satisfactory.
+
 
 ## Command line arguments for the tcb-client-l C program
 
