@@ -1,5 +1,5 @@
 #
-# @(!--#) @(#) tcp-client-w.py, version 002, 11-september-2025
+# @(!--#) @(#) tcp-client-w.py, version 002, 17-september-2025
 #
 # a simple serial terminal emulator which connects to the tcp-com bridge server
 #
