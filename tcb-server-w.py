@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 #
-# @(!--#) @(#) tcb-server-w.py, sversion 0.1.0, fversion 006, 14-september-2025
+# @(!--#) @(#) tcb-server-w.py, sversion 0.1.0, fversion 007, 22-september-2025
 #
 # TCP to COM bridge server (Python 3 on Windows 10/11)
 #
@@ -31,6 +31,7 @@ import serial.tools.list_ports
 # globals
 #
 
+DEFAULT_DEBUG_LEVEL       = 1
 DEFAULT_COM               = '-'
 DEFAULT_BAUD              = '9600'
 DEFAULT_BIND_IPV4         = '-'
@@ -38,6 +39,8 @@ DEFAULT_BIND_TCP_PORT     = '8089'
 DEFAULT_TIMEOUT           = 0.01
 
 BUFFER_SIZE               = 8192
+
+debug = DEFAULT_DEBUG_LEVEL
 
 ##############################################################################
 
@@ -77,7 +80,13 @@ def process_connection(connection, address, servercom, timeout):
         received = servercom.read(BUFFER_SIZE)
          
         if len(received) > 0:
-            print('A total of {} bytes read from the COM port - sending to {}.{}'.format(len(received), address[0], address[1]))
+            if debug == 2:
+                print('A total of {} bytes read from the COM port - sending to {}.{}'.format(len(received), address[0], address[1]))
+
+            if debug == 1:
+                for i in range(0, len(received)):
+                    print('<', end='', flush=True)
+
             connection.send(received)
         else:
             # print('No bytes on COM port')
@@ -90,18 +99,31 @@ def process_connection(connection, address, servercom, timeout):
             pass
         else:
             if len(rlist) > 0:
-                print('Bytes available to read on connection - reading them now')
+                if debug == 2:
+                    print('Bytes available to read on connection - reading them now')
+
                 received = connection.recv(BUFFER_SIZE)
                 
                 numreceived = len(received)
                 
                 if numreceived == 0:
                     # the socket being ready but there not being any data is a sign the connnection has dropped
+                    print('')
                     print('No bytes read from socket - assuming connection has dropped')
                     break
                 else:
-                    print('{} bytes read from socket - writing them to com port'.format(numreceived))
+                    if debug == 2:
+                        print('{} bytes read from socket - writing them to com port'.format(numreceived))
+
+                    if debug == 1:
+                        for i in range(0, numreceived):
+                            print('>', end='', flush=True)
+
                     servercom.write(received)
+
+    # close the connection
+    connection.close()
+    
 
     return 0        
 
@@ -109,9 +131,11 @@ def process_connection(connection, address, servercom, timeout):
 
 def main():
     global progame
+    global debug
 
     parser = argparse.ArgumentParser()
         
+    parser.add_argument('--debug',   help='debug level',             default=DEFAULT_DEBUG_LEVEL)
     parser.add_argument('--com',     help='COMn port name',          default=DEFAULT_COM)
     parser.add_argument('--baud',    help='baud rate',               default=DEFAULT_BAUD)
     parser.add_argument('--bind',    help='IPv4 address to bind to', default=DEFAULT_BIND_IPV4)
@@ -119,6 +143,8 @@ def main():
     parser.add_argument('--timeout', help='timeout',                 default=DEFAULT_TIMEOUT)
 
     args = parser.parse_args()
+
+    debug = int(args.debug)
     
     comport = args.com.upper()
     
