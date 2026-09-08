@@ -1,37 +1,63 @@
-# Two programs to create a bridge between a Windows desktop's USB serial COM port and a Linux server
+# A program to create a bridge between a Windows desktop's USB serial COM port and a TCP endpoint
 
-## Warning!
+## Warning!!!
 
-Please read the security section. In summary everything sent across the
-"bridge" in both directions is sent unencrypted.
+Please read the security section. In summary: everything sent across the
+"bridge" in both directions is sent `unencrypted`.
 
 USE AT YOUR OWN RISK!!!
 
+## Security
+
+All the traffic that goes over the bridge in both directions is sent
+unencrypted. For example, if you are logging into the serial port of a network
+switch then any usernames and passwords you type will be
+transmitted across the bridge as clear text.
+
+When the bridge is between the USB to serial adapter on the Windows
+machine and a virtual machine running on Virtual Box which is running on
+the same Windows machine then this traffic should not "escape" onto any
+connected networks (e.g. WiFi and/or ethernet links).
+
+However, it would be wrong of me to guarantee that bridge traffic will
+never escape so beware!
+
+If you don't like the sound of this then DO NOT USE THE SOFTWARE!!!
+
 ## Abstract
 
-The programs here were written to overcome an issue I was having trying
+This bridge program was written to overcome an issue I was having trying
 to get an Ubuntu 24.04 LTS virtual machine which runs under Virtual
-Box on my Windows 10 (soon to be Windows 11) laptop to talk to a USB to
+Box on my Windows 10 (soon to be Windows 11) laptop to talk to a USB
 serial adapter.
 
-When I connected a USB to serial adapter to one of the laptops USB
-ports I could map the USB device ok and see it on the Ubuntu machine
-as /dev/ttyUSB0 but trying to use it would initially work but then hang
+First I tried connecting a USB serial adapter to one of the laptops USB
+ports and, within Virtual Box, mapping the USB device to the virtual
+machine. The USB serial adtapter could be seen on the Ubuntu machine
+as device file /dev/ttyUSB0 and trying to use this device file would initially work. However, the device would soon hang
 and/or become otherwise unreliable.
 
 Sometimes the Ubuntu virtual machine would not restart properly.
 
-Some googling shows other people have had issues with USB to serial
-adaptors and Virtual Box.
+Some googling shows other people have had issues with mapping USB to serial
+adaptors in Virtual Box.
 
-Rather than try the many workarounds suggested I have taken a different
-approach.
+Rather than try the many workarounds suggested on the internet
+I have taken a different approach.
 
-I have written two programs that work as a bridge between the USB to
-serial adapter in Windows and the Ubuntu virtual machine hosted by
-Virtual Box.
+I have a Python 3 program called `tcp-com-bridge.py` that works
+as a bridge between the USB
+serial adapter in Windows and a TCP endpoint.
 
-Here is a diagram:
+On the Ubuntu virtual machine hosted by Virtual Box I use another program
+called `autoserial` to connect to the TCP endpoint. The `autoserial`
+program is available to download from here:
+    
+[Connect to a local serial device or a TCP to COM serial bridge](https://codeberg.org/andycranston/autoserial)
+
+## My setup
+
+Here is a diagram showing my particular set up:
 
 ```
 +---------------+
@@ -57,39 +83,43 @@ Here is a diagram:
      +--------------------------+
 ```
 
+I have a laptop running Oracle Virtual Box. Oracle Virtual Box
+is hosting a virtual machine instance running the Ubuntu 24.04 LTS
+operating system.
+
+Connected to one of the laptops USB ports is a USB serial adapter.
+
+A RJ45 to DB9 cable is use to connect to the serial device. The DB9 end plugs
+into the USB serial adapter and the RJ45 end plugs into the serial device
+(in this setup a Cisco C2950 network switch).
+
 # Quick start
 
-Copy the `tcb-server-w.py` Python 3 program to the Windows laptop.
+Copy the `tcp-com-bridge.py` Python 3 program to the Windows laptop.
 
-Open a command prompt and change to the directory that `tcb-server-w.py` was copied to.
+Open a command prompt and change to the directory that the
+`tcp-com-bridge.py` program was copied to.
 
 Run the program with:
 
 ```
-python tcb-server-w.py --bind 10.7.0.10 --baud 9600
+python tcp-com-bridge.py --bind 10.7.0.10 --baud 9600
 ```
 
 Change the IP address to the IP address of the laptop.
 
-Copy the `Makefile` and `tcb-client-l.c` files to the Ubuntu 24.04 LTS virtual machine.
-
 Login into the Ubuntu 24.04 LTS virtual machine.
 
-Change to the directory that both files were copied to.
+From this webpage:
+    
+[Connect to a local serial device or a TCP to COM serial bridge](https://codeberg.org/andycranston/autoserial)
 
-Run:
+download and compile the `autoserial` program.
 
-```
-make
-```
-
-to compile the executable `$HOME/bin/tcb-client-l` - if the subdirectory `$HOME/bin` does
-not exist then create it *BEFORE* running the `make` command.
-
-Now run the `tcb-client-l` command as:
+Now run the `autoserial` program as:
 
 ```
-tcb-client-l 10.7.0.10
+autoserial 10.7.0.10 8089
 ```
 
 If connection is succesful the following will be displayed:
@@ -108,13 +138,9 @@ To disconnect type the single character ^ and the following should be displayed:
 <<Exiting>>
 ```
 
-and the `tcb-client-l` program will terminate.
+and the `autoserial` program will terminate.
 
-Both the `tcb-client-l` C program and the `tcb-server-w.py` Python program take
-a range of optional command line arguments. See later sections in the README file
-for details.
-
-## Command line arguments for the tcb-server-w.py Python program
+## Command line arguments for the tcp-com-bridge.py Python program
 
 ### The --com command line argument
 
@@ -140,17 +166,17 @@ then COM14 will be used.
 
 The baud rate to open the COM port at defaults to 9600 baud. To specify
 a different baud rate use the `--baud` command lne argument. For example
-to use baud rate 115200 run the `tcb-server-w.py` program as follows:
+to use baud rate 115200 run the `tcp-com-bridge.py` program as follows:
 
 ```
-python tcb-server-w.py --baud 115200
+python tcp-com-bridge.py --baud 115200
 ```
 ### The --bind command line argument
 
 The `--bind` command line agument is used to specify the IPv4 address that
-the `tcb-server-w.py` program should listen on for incomining connections.
+the `tcp-com-bridge.py` program should listen on for incomining connections.
 
-If the `--bind` command line agument is omitted the `tcb-server-w.py`
+If the `--bind` command line agument is omitted the `tcp-com-bridge.py`
 program will see if there are any interfaces which have an IPv4 address
 where the first two octets are 10 and 7 such as:
 
@@ -164,13 +190,13 @@ author, some typing :-]
 ### The --port command line argument
 
 The `--port` command line argument is used to specifiy the TCP/IP port
-number the `tcb-server-w.py` should listen on.
+number the `tcp-com-bridge.py` should listen on.
 
 It defaults to port 8089 but if a different port number is needed it
 can be specified. For example:
 
 ```
-python tcb-server-w.py --port 9123
+python tcp-com-bridge.py --port 9123
 ```
 
 ### The --timeout command line argument
@@ -188,71 +214,14 @@ Depending on your hardware specifications you might want to try different
 values but 0.01 seconds (i.e. one hundredth of a second) has, so far,
 been satisfactory.
 
-
-## Command line arguments for the tcb-client-l C program
-
-### First positional command line argument
-
-The first positional command line argument is the IPv4 address to
-connect to.
-
-It is a required command line argument. For example:
-
-```
-tcb-client-l 10.7.0.10
-```
-
-
-### Second positional command line argument
-
-The second positional command line argument is the TCP/IP port number
-to connect to.
-
-It is an optional command line argument. By default the TCP/IP port
-number is 8089 but a different port number can be specified. For example:
-
-
-```
-tcb-client-l 10.7.0.10 8008
-```
-
-
-### The `-e` command line argument
-
-By default the `tcb-client-l` program exits when the user types a single
-^ character.
-
-To change this to another character use the `-e` command line
-argument. For example to use the character = as the escape character:
-
-```
-tcb-client-l -e = 10.7.0.10
-```
-
-
-
-
 ## Bugs
 
 Bound to be some bugs - especially when handling disconnections and
-timeouts. Let me know :-]
+timeouts. Let me know - my email address is:
+    
+```
+andy [at] cranstonhub [dot] com
+```
 
-## Security
-
-All the traffic that goes over the bridge in both directions is sent
-unencrypted. So if you are logging into the serial port of a network
-switch, for example, any usernames and passwords you type will be
-transmitted across the bridge as clear text.
-
-When the bridge is between the USB to serial adapter on the Windows
-machine and a virtual machine running on Virtual Box which is running on
-the same Windows machine then this traffic should not "escape" onto any
-connected networks (e.g. WiFi and/or ethernet links).
-
-However, it would be wrong of me to guarantee that bridge traffic will
-never escape so beware!
-
-If you don't like the sound of this then DO NOT USE THE SOFTWARE.
-
----------------
-End of Document
+----------------
+End of README.md
