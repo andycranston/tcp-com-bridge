@@ -22,7 +22,7 @@ connected networks (e.g. WiFi and/or ethernet links).
 However, it would be wrong of me to guarantee that bridge traffic will
 never escape so beware!
 
-If you don't like the sound of this then DO NOT USE THE SOFTWARE!!!
+If you don't like the sound of this THEN DO NOT USE THE SOFTWARE!!!
 
 ## Abstract
 
